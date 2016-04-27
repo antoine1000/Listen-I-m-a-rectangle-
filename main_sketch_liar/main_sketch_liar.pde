@@ -1,6 +1,4 @@
 
-
-
 // Définitions des variables de formes
 public static final int FORM_UNDEFINED = 0;
 public static final int FORM_RECT = 1;
@@ -109,32 +107,32 @@ void draw() {
     noFill();
     translate(0, 0, 0);
     
-//    
-////Animation de l'apparition de la forme
-//    float widthShape = map(position.z, 250, 3000, 500, 50);
-//    float heightShape = map(position.z, 250, 3000, 500, 50)*1.5;
-//       if (FORM_RECT == 1) {
-//        Ani.to(this, 1.5, 0, widthShape, Ani.ELASTIC_OUT);
-//        Ani.to(this, 1.7, 0, heightShape, Ani.ELASTIC_IN);
-//      }
 
+// Traduction des proportions kinect en proportions fullscreen   
+float posx = map(position.x, 0, 640, width, 0);
+float posy = map(position.y, 0, 480, 0, height);
+float widthShape = map(position.z, 250, 3000, 500, 50);
+float heightShape = map(position.z, 250, 3000, 500, 50)*1.5;
 
 // Création des formes géométriques      
   switch (userform[userId]) {
     case FORM_RECT :
-      rectangle = RShape.createRectangle((mirrorx - width/2), (position.y - height/2), map(position.z, 250, 3000, 500, 50), map(position.z, 250, 3000, 500, 50)*1.5);
+      rectangle = RShape.createRectangle((posx - widthShape / 2), (posy - heightShape/2), widthShape, heightShape);
       noFill();
       stroke(0, 0, 255);
       rectangle.draw();
-    break;
+      //Animation de l'apparition de la forme
+//        Ani.to(this, 1.5, 0, widthShape, Ani.ELASTIC_OUT);
+//        Ani.to(this, 1.7, 0, heightShape, Ani.ELASTIC_IN);
+      break;
     case FORM_ELLIPSE :
-      circle = RShape.createEllipse(mirrorx, position.y, map(position.z, 250, 3000, 500, 50), map(position.z, 250, 3000, 500, 50)*1.5);
+      circle = RShape.createEllipse(posx, posy, widthShape, heightShape);
       noFill();
       stroke(255, 0, 0);
       circle.draw();
     break;
     case FORM_TRIANGLE :
-        triangle = RShape.createStar(mirrorx, position.y, map(position.z, 250, 3000, 500, 50)/2, map(position.z, 250, 3000, 500, 50), 3);
+        triangle = RShape.createStar(posx, posy, map(position.z, 250, 3000, 500, 50)/2, map(position.z, 250, 3000, 500, 50), 3);
         // Rotate le triangle pour qu'il s'affiche dans le bon sens
         triangle.rotate((PI/2)*3, triangle.getCenter());
         noFill();
@@ -146,7 +144,7 @@ void draw() {
 // Affiche l'ID de chaque utilisateur
     fill(0, 255, 0);
     textSize(60);
-    text(userId, mirrorx, position.y);
+    text(userId, posx, posy);
 //println(position.z);
 
 }
@@ -154,7 +152,6 @@ void draw() {
 // GEOMERATIVE INTERSECTION, actif uniquement si les formes sont elles-même actives
   if(rectangle != null && circle != null){
      if(circle.intersects(rectangle)) {
-    mb.sendNoteOn(channel, pitch, velocity);
     RShape diff = circle.intersection(rectangle);
     fill( random(255), random(255), random(255));
     if(diff !=null)  diff.draw();
@@ -164,7 +161,6 @@ void draw() {
    if(rectangle != null && triangle != null){
      if(rectangle.intersects(triangle)) {
     RShape diff = rectangle.intersection(triangle);
-     mb.sendNoteOn(channel, pitch, velocity);
     fill( random(255), random(255), random(255));
     if(diff !=null)  diff.draw();
     }
@@ -173,7 +169,6 @@ void draw() {
   if(circle != null && triangle != null){
      if(circle.intersects(triangle)) {
     RShape diff = circle.intersection(triangle);
-     mb.sendNoteOn(channel, pitch, velocity);
     fill( random(255), random(255), random(255));
     if(diff !=null)  diff.draw();
     }
