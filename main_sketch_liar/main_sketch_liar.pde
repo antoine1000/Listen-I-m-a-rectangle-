@@ -75,8 +75,6 @@ void draw() {
 // Recherche un utilisateur et lui attribut un Id selon son center of mass
   for (int i=0; i<userList.size (); i++) {
 
-
-    
     int userId = userList.get(i);
 
     PVector position = new PVector(); 
@@ -136,7 +134,6 @@ void draw() {
       circle.draw();
     break;
     case FORM_TRIANGLE :
-//      triangle = RShape.createStar(mirrorx, position.y, (200/2), 200, 3);
         triangle = RShape.createStar(mirrorx, position.y, map(position.z, 250, 3000, 500, 50)/2, map(position.z, 250, 3000, 500, 50), 3);
         // Rotate le triangle pour qu'il s'affiche dans le bon sens
         triangle.rotate((PI/2)*3, triangle.getCenter());
@@ -157,8 +154,8 @@ void draw() {
 // GEOMERATIVE INTERSECTION, actif uniquement si les formes sont elles-même actives
   if(rectangle != null && circle != null){
      if(circle.intersects(rectangle)) {
+    mb.sendNoteOn(channel, pitch, velocity);
     RShape diff = circle.intersection(rectangle);
-    
     fill( random(255), random(255), random(255));
     if(diff !=null)  diff.draw();
     }
@@ -167,7 +164,7 @@ void draw() {
    if(rectangle != null && triangle != null){
      if(rectangle.intersects(triangle)) {
     RShape diff = rectangle.intersection(triangle);
-    
+     mb.sendNoteOn(channel, pitch, velocity);
     fill( random(255), random(255), random(255));
     if(diff !=null)  diff.draw();
     }
@@ -176,14 +173,12 @@ void draw() {
   if(circle != null && triangle != null){
      if(circle.intersects(triangle)) {
     RShape diff = circle.intersection(triangle);
-    
+     mb.sendNoteOn(channel, pitch, velocity);
     fill( random(255), random(255), random(255));
     if(diff !=null)  diff.draw();
     }
   } 
   
- 
-
 // Si il n'y a plus d'utilisateur actif et qu'une forme est encore attribué à rect/ellipse..etc, alors lui attribuer une forme undefined
 // Permet de remettre le tableau à undefined en cas de nouvelle entrée/sortie d'utilisateurs
   for (int i=0; i < useractive.length; i++) {
