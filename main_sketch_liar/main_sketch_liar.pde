@@ -1,3 +1,9 @@
+//************* Listen, I'm a rectangle! ************* 
+// Project by Antoine Puel, student @ ERG
+// Ressource : Daniel Shiffman & Greg Borenstein (Making Things See)
+// Great help from François Zajéga (http://www.frankiezafe.org) 
+// & Arnaud Juracek (http://arnaudjuracek.fr)
+
 
 // Définitions des variables de formes
 public static final int FORM_UNDEFINED = 0;
