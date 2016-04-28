@@ -12,11 +12,12 @@ int currentForm = FORM_RECT;
 
 // Importation des librairies
 import SimpleOpenNI.*;
-SimpleOpenNI kinect;
 import geomerative.*;
 import de.looksgood.ani.*;
 import de.looksgood.ani.easing.*;
 import themidibus.*;
+
+SimpleOpenNI kinect;
 
 // Create Rshape objects
 RShape circle;
@@ -28,12 +29,15 @@ MidiBus mb;
 
 // MIDI notes params
 int channel = 1;
-int pitch = 60;
-int velocity = 127;
+int pitch = 50;
+int velocity = 90;
 
+boolean sketchFullScreen() {
+  return true;
+}
 
 void setup() {
-  fullscreen(0, P3D);
+  size(displayWidth, displayHeight, P3D);
 
 // Création d'instances pour rendre disponible les librairies openNI/Geomerative/Midibus/Ani
   kinect = new SimpleOpenNI(this); 
@@ -72,6 +76,8 @@ void draw() {
 
 // Recherche un utilisateur et lui attribut un Id selon son center of mass
   for (int i=0; i<userList.size (); i++) {
+    
+     
 
     int userId = userList.get(i);
 
@@ -117,13 +123,23 @@ float heightShape = map(position.z, 250, 3000, 500, 50)*1.5;
 // Création des formes géométriques      
   switch (userform[userId]) {
     case FORM_RECT :
+//  if (rectangle == null) {
+//       widthShape = 0;
+//       heightShape = 0;
+//       } else {
+//      widthShape = map(position.z, 250, 3000, 500, 50);
+//      heightShape = map(position.z, 250, 3000, 500, 50)*1.5;
+//       }
+// Animation de l'apparition de la forme
       rectangle = RShape.createRectangle((posx - widthShape / 2), (posy - heightShape/2), widthShape, heightShape);
       noFill();
       stroke(0, 0, 255);
       rectangle.draw();
-      //Animation de l'apparition de la forme
-//        Ani.to(this, 1.5, 0, widthShape, Ani.ELASTIC_OUT);
-//        Ani.to(this, 1.7, 0, heightShape, Ani.ELASTIC_IN);
+      Ani.to("rectangle", 1.5, 0, "widthShape", Ani.ELASTIC_OUT);
+      Ani.to("rectangle", 1.7, 0, "heightShape", Ani.ELASTIC_IN);
+    
+// Active le channel midi à l'apparition de la forme
+//        mb.sendNoteOn(channel, pitch, velocity);
       break;
     case FORM_ELLIPSE :
       circle = RShape.createEllipse(posx, posy, widthShape, heightShape);
@@ -142,9 +158,9 @@ float heightShape = map(position.z, 250, 3000, 500, 50)*1.5;
   }
     
 // Affiche l'ID de chaque utilisateur
-    fill(0, 255, 0);
-    textSize(60);
-    text(userId, posx, posy);
+//    fill(0, 255, 0);
+//    textSize(60);
+//    text(userId, posx, posy);
 //println(position.z);
 
 }
@@ -155,6 +171,7 @@ float heightShape = map(position.z, 250, 3000, 500, 50)*1.5;
     RShape diff = circle.intersection(rectangle);
     fill( random(255), random(255), random(255));
     if(diff !=null)  diff.draw();
+    mb.sendNoteOn(channel, pitch, velocity);
     }
   } 
   
@@ -163,6 +180,7 @@ float heightShape = map(position.z, 250, 3000, 500, 50)*1.5;
     RShape diff = rectangle.intersection(triangle);
     fill( random(255), random(255), random(255));
     if(diff !=null)  diff.draw();
+    mb.sendNoteOn(channel, pitch, velocity);
     }
   } 
   
@@ -171,6 +189,7 @@ float heightShape = map(position.z, 250, 3000, 500, 50)*1.5;
     RShape diff = circle.intersection(triangle);
     fill( random(255), random(255), random(255));
     if(diff !=null)  diff.draw();
+    mb.sendNoteOn(channel, pitch, velocity);
     }
   } 
   
