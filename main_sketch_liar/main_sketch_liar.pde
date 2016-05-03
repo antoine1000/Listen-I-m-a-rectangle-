@@ -42,6 +42,11 @@ boolean sketchFullScreen() {
   return true;
 }
 
+   
+float xr = 0;
+float yr = 0;
+
+
 void setup() {
   size(displayWidth, displayHeight, P3D);
 
@@ -119,33 +124,28 @@ void draw() {
     noFill();
     translate(0, 0, 0);
     
-
-// Traduction des proportions kinect en proportions fullscreen   
+// Traduction des proportions kinect en proportions fullscreen
 float posx = map(position.x, 0, 640, width, 0);
 float posy = map(position.y, 0, 480, 0, height);
 float widthShape = map(position.z, 250, 3000, 500, 50);
 float heightShape = map(position.z, 250, 3000, 500, 50)*1.5;
-
+    
 // Création des formes géométriques      
   switch (userform[userId]) {
     case FORM_RECT :
-//  if (rectangle == null) {
-//       widthShape = 0;
-//       heightShape = 0;
-//       } else {
-//      widthShape = map(position.z, 250, 3000, 500, 50);
-//      heightShape = map(position.z, 250, 3000, 500, 50)*1.5;
-//       }
 // Animation de l'apparition de la forme
-      rectangle = RShape.createRectangle((posx - widthShape / 2), (posy - heightShape/2), widthShape, heightShape);
+     
+      rectangle = RShape.createRectangle((posx - widthShape / 2), (posy - heightShape/2), xr, yr);
       noFill();
       stroke(0, 0, 255);
       rectangle.draw();
-      Ani.to("rectangle", 1.5, 0, "widthShape", Ani.ELASTIC_OUT);
-      Ani.to("rectangle", 1.7, 0, "heightShape", Ani.ELASTIC_IN);
-    
+      // lerp animation
+      xr += (widthShape - xr)* 0.2;
+      yr += (heightShape - yr) * 0.2;
+      
+  
 // Active le channel midi à l'apparition de la forme
-//        mb.sendNoteOn(channel, pitch, velocity);
+//  mb.sendNoteOn(channel, pitch, velocity);
       break;
     case FORM_ELLIPSE :
       circle = RShape.createEllipse(posx, posy, widthShape, heightShape);
@@ -175,11 +175,20 @@ float heightShape = map(position.z, 250, 3000, 500, 50)*1.5;
   if(rectangle != null && circle != null){
      if(circle.intersects(rectangle)) {
     RShape diff = circle.intersection(rectangle);
-    fill( random(255), random(255), random(255));
-    if(diff !=null)  diff.draw();
+//    fill( random(255), random(255), random(255));
+
+
+
+RPoint[] gi = circle.getIntersections(rectangle);
+
+for(int i = 0; i <= diff.width; i += 10) {
+   stroke(255);
+   line(gi[i].x, gi[i].y, gi[i].x, diff.height); 
+   if(diff !=null)  diff.draw();
+     }
     mb.sendNoteOn(channel, pitch, velocity);
-    }
-  } 
+  }
+} 
   
    if(rectangle != null && triangle != null){
      if(rectangle.intersects(triangle)) {
@@ -199,6 +208,7 @@ float heightShape = map(position.z, 250, 3000, 500, 50)*1.5;
     }
   } 
   
+  
 // Si il n'y a plus d'utilisateur actif et qu'une forme est encore attribué à rect/ellipse..etc, alors lui attribuer une forme undefined
 // Permet de remettre le tableau à undefined en cas de nouvelle entrée/sortie d'utilisateurs
   for (int i=0; i < useractive.length; i++) {
@@ -211,7 +221,8 @@ float heightShape = map(position.z, 250, 3000, 500, 50)*1.5;
     }
   }
   
-  
 }
+
+      
 
 
