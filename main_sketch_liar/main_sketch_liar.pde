@@ -135,15 +135,16 @@ float heightShape = map(position.z, 250, 3000, 500, 50)*1.5;
     case FORM_RECT :
 // Animation de l'apparition de la forme
      
+      
       rectangle = RShape.createRectangle((posx - widthShape / 2), (posy - heightShape/2), xr, yr);
       noFill();
       stroke(0, 0, 255);
       rectangle.draw();
       // lerp animation
-      xr += (widthShape - xr)* 0.2;
-      yr += (heightShape - yr) * 0.2;
-      
-  
+      xr += (widthShape - xr)* 0.09;
+      yr += (heightShape - yr) * 0.9;
+        
+ 
 // Active le channel midi à l'apparition de la forme
 //  mb.sendNoteOn(channel, pitch, velocity);
       break;
@@ -178,7 +179,7 @@ float heightShape = map(position.z, 250, 3000, 500, 50)*1.5;
 //    fill( random(255), random(255), random(255));
 
 
-
+// Test de trame au croisement de formes (ne marche pas)
 RPoint[] gi = circle.getIntersections(rectangle);
 
 for(int i = 0; i <= diff.width; i += 10) {
@@ -207,6 +208,12 @@ for(int i = 0; i <= diff.width; i += 10) {
     mb.sendNoteOn(channel, pitch, velocity);
     }
   } 
+  
+// Permet d'animer la forme à chaque nouvelle apparition
+    if(rectangle == null && xr != 0) {
+        xr = 0;
+        yr = 0;
+      }
   
   
 // Si il n'y a plus d'utilisateur actif et qu'une forme est encore attribué à rect/ellipse..etc, alors lui attribuer une forme undefined
