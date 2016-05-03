@@ -1,11 +1,13 @@
 //************* Listen, I'm a rectangle! ************* 
-// Project by Antoine Puel, student @ ERG
+// Project by Antoine Puel, student @ ERG, http://antoine.cool
+// If you use this code for a project, please mention my name and my website in the code. Thanks!
+// Made with : Processing (2.2.1) and Kinect MODEL 1414
 // Ressource : Daniel Shiffman & Greg Borenstein (Making Things See)
 // Great help from François Zajéga (http://www.frankiezafe.org) 
 // Arnaud Juracek (http://arnaudjuracek.fr) & Hugo Piquemal (http://hugopiquemal.com)
 
 
-// Définitions des variables de formes
+// Shapes variables
 public static final int FORM_UNDEFINED = 0;
 public static final int FORM_RECT = 1;
 public static final int FORM_TRIANGLE = 2;
@@ -42,9 +44,14 @@ boolean sketchFullScreen() {
   return true;
 }
 
-// Width and Height variable at "start"
-float xr = 0;
-float yr = 0;
+// Width and Height variable of every shapes at "start"
+//float wr = 0;
+//float hr = 0;
+//float wt = 0;
+//float ht = 0;
+//float wc = 0;
+//float hc = 0;
+float wr, hr, wt, ht, wc, hc = 0;
 
 
 void setup() {
@@ -61,7 +68,7 @@ void setup() {
 // Instantiate the MidiBus
   mb = new MidiBus(this, -1, "Bus 1");
 
-// Instantiation of userform & useractive arrays (16 détection max.)
+// Instantiation of userform & useractive arrays (16 users max)
   userform = new int[16];
   useractive = new boolean[16];
 
@@ -102,7 +109,7 @@ void draw() {
     if (userform[userId] == FORM_UNDEFINED) {
       userform[userId] = currentForm;
       currentForm++;
-// Shapes appear in a loop : rectangle / triangle / circle
+// Shapes appear in a loop : rectangle -> triangle -> circle -> rectangle...etc
       if (currentForm >= FORM_NUMBER) {
         currentForm = FORM_RECT;
       }
@@ -124,40 +131,46 @@ void draw() {
 // Creation of geometric shapes     
     switch (userform[userId]) {
     case FORM_RECT :  
-      rectangle = RShape.createRectangle((posx - widthShape / 2), (posy - heightShape/2), xr, yr);
+      rectangle = RShape.createRectangle((posx - widthShape / 2), (posy - heightShape/2), wr, hr);
       noFill();
       stroke(0, 0, 255);
       rectangle.draw();
 // The shape appears with a "lerp" animation
-      xr += (widthShape - xr)* 0.09;
-      yr += (heightShape - yr) * 0.3;
+      wr += (widthShape - wr)* 0.09;
+      hr += (heightShape - hr) * 0.3;
 // MIDI Channel is activate when the shape appears
       /*  mb.sendNoteOn(channel, pitch, velocity); */
       break;
     case FORM_ELLIPSE :
-      circle = RShape.createEllipse(posx, posy, widthShape, heightShape);
+      circle = RShape.createEllipse(posx, posy, wc, hc);
       noFill();
       stroke(255, 0, 0);
       circle.draw();
+// The shape appears with a "lerp" animation
+      wc += (widthShape - wc)* 0.09;
+      hc += (heightShape - hc) * 0.3;
       break;
     case FORM_TRIANGLE :
-      triangle = RShape.createStar(posx, posy, map(position.z, 250, 3000, 500, 50)/2, map(position.z, 250, 3000, 500, 50), 3);
+      triangle = RShape.createStar(posx, posy, wt, ht, 3);
 // (PI/2)*3 is for a correct display of the triangle
       triangle.rotate((PI/2)*3, triangle.getCenter());
       noFill();
       stroke(255, 255, 0);
       triangle.draw();
+// The shape appears with a "lerp" animation
+      wt += (widthShape/2 - wt)* 0.09;
+      ht += (widthShape - ht) * 0.3;
       break;
     }
 
-// OPTIONAL : Display the userId of each user
+// OPTIONAL : Display the userId (number) of each user
     /*  fill(0, 255, 0);
         textSize(60);
         text(userId, posx, posy);
         println(position.z); */
   }
 
-// GEOMERATIVE INTERSECTION (active only if shapes are displayed)
+// Geomerative intersection (active only if shapes are displayed)
   if (rectangle != null && circle != null) {
     if (circle.intersects(rectangle)) {
       RShape diff = circle.intersection(rectangle);
@@ -195,11 +208,20 @@ void draw() {
   } 
 
 // Reload the "first apperance animation" of a shape
-  if (rectangle == null && xr != 0) {
-    xr = 0;
-    yr = 0;
+  if (rectangle == null && wr != 0) {
+    wr = 0;
+    hr = 0;
   }
-
+  
+    if (circle == null && wc != 0) {
+    wc = 0;
+    hc = 0;
+  }
+  
+    if (triangle == null && wt != 0) {
+    wt = 0;
+    ht = 0;
+  }
 
 // If there is no more active users, but a shape is still assign to a user, the shape became "undefined" and disappear
 // In case of new entry or exit of users, shapes in the array became "undefined"
