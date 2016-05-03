@@ -2,7 +2,7 @@
 // Project by Antoine Puel, student @ ERG
 // Ressource : Daniel Shiffman & Greg Borenstein (Making Things See)
 // Great help from François Zajéga (http://www.frankiezafe.org) 
-// & Arnaud Juracek (http://arnaudjuracek.fr)
+// Arnaud Juracek (http://arnaudjuracek.fr) & Hugo Piquemal (http://hugopiquemal.com)
 
 
 // Définitions des variables de formes
@@ -16,7 +16,7 @@ int[] userform;
 boolean[] useractive;
 int currentForm = FORM_RECT;
 
-// Importation des librairies
+// Libraries importation
 import SimpleOpenNI.*;
 import geomerative.*;
 import de.looksgood.ani.*;
@@ -42,7 +42,7 @@ boolean sketchFullScreen() {
   return true;
 }
 
-   
+// Width and Height variable at "start"
 float xr = 0;
 float yr = 0;
 
@@ -50,22 +50,22 @@ float yr = 0;
 void setup() {
   size(displayWidth, displayHeight, P3D);
 
-// Création d'instances pour rendre disponible les librairies openNI/Geomerative/Midibus/Ani
+// New libraries object : openNI/Geomerative/Midibus/Ani
   kinect = new SimpleOpenNI(this); 
   kinect.enableDepth(); 
   kinect.enableUser();
-   
+
   Ani.init(this);
   RG.init(this);
-  
+
 // Instantiate the MidiBus
   mb = new MidiBus(this, -1, "Bus 1");
 
-// Instantiation des tableaux userform & useractive (16 détection max.)
+// Instantiation of userform & useractive arrays (16 détection max.)
   userform = new int[16];
   useractive = new boolean[16];
 
-// Au démarrage, toutes les formes sont "undefined"
+// At first, every shapes are "undefined"
   for (int i=0; i < 16; i++) {
     userform[i] = FORM_UNDEFINED;
   }
@@ -76,150 +76,134 @@ void draw() {
   image(kinect.depthImage(), 0, 0);
   background(0, 0, 30);
 
-// IntVector marche comme un array, mais qui augmente ou réduit sa taille selon l'entrée ou la sortie des élements
+// IntVector is like an array, but add or delete elements if needed
   IntVector userList = new IntVector();
   kinect.getUsers(userList);
 
-// De base, tous les utilisateurs sont déclarés comme inactifs
+// At start, every users are inactive
   for (int i=0; i < 16; i++) {
     useractive[i] = false;
   }
 
-// Recherche un utilisateur et lui attribut un Id selon son center of mass
+// Search for an user and give him a UserId (based on his center of mass)
   for (int i=0; i<userList.size (); i++) {
-    
-     
-
     int userId = userList.get(i);
-
     PVector position = new PVector(); 
     kinect.getCoM(userId, position);
 
-//Permet de changer de forme dès qu'un utilisateur rentre dans le cadre
+// Every geometric are differents when a user enter or re-enter the screen
     if ( position.z == 0 ) {
-      println("Ce n'est pas bon !");
+      println("That's not good!");
       continue;
     }
 
-
-// Une fois un utilisateur actif repéré, si sa forme est undefined, lui attribuer une forme
+// If a user is detected, and his form is "undefined", it's give him a new form
     useractive[userId] = true;
     if (userform[userId] == FORM_UNDEFINED) {
       userform[userId] = currentForm;
       currentForm++;
-    // Tourne en boucle, on revient au rectangle
+// Shapes appear in a loop : rectangle / triangle / circle
       if (currentForm >= FORM_NUMBER) {
         currentForm = FORM_RECT;
       }
-      println("On met une nouvelle forme!" + userform[userId] + " " + userId);
+      println("Putting a new shape!" + userform[userId] + " " + userId);
     }
 
     kinect.convertRealWorldToProjective(position, position);
 
     println(position.x);
-
-    float mirrorx = (width)-position.x;
-    stroke(245, 255, 100);
     strokeWeight(5);
-    noFill();
     translate(0, 0, 0);
-    
-// Traduction des proportions kinect en proportions fullscreen
-float posx = map(position.x, 0, 640, width, 0);
-float posy = map(position.y, 0, 480, 0, height);
-float widthShape = map(position.z, 250, 3000, 500, 50);
-float heightShape = map(position.z, 250, 3000, 500, 50)*1.5;
-    
-// Création des formes géométriques      
-  switch (userform[userId]) {
-    case FORM_RECT :
-// Animation de l'apparition de la forme
-     
-      
+
+// Translation of kinect proportion to fullscreen proportions
+    float posx = map(position.x, 0, 640, width, 0);
+    float posy = map(position.y, 0, 480, 0, height);
+    float widthShape = map(position.z, 250, 3000, 500, 50);
+    float heightShape = map(position.z, 250, 3000, 500, 50)*1.5;
+
+// Creation of geometric shapes     
+    switch (userform[userId]) {
+    case FORM_RECT :  
       rectangle = RShape.createRectangle((posx - widthShape / 2), (posy - heightShape/2), xr, yr);
       noFill();
       stroke(0, 0, 255);
       rectangle.draw();
-      // lerp animation
+// The shape appears with a "lerp" animation
       xr += (widthShape - xr)* 0.09;
-      yr += (heightShape - yr) * 0.9;
-        
- 
-// Active le channel midi à l'apparition de la forme
-//  mb.sendNoteOn(channel, pitch, velocity);
+      yr += (heightShape - yr) * 0.3;
+// MIDI Channel is activate when the shape appears
+      /*  mb.sendNoteOn(channel, pitch, velocity); */
       break;
     case FORM_ELLIPSE :
       circle = RShape.createEllipse(posx, posy, widthShape, heightShape);
       noFill();
       stroke(255, 0, 0);
       circle.draw();
-    break;
+      break;
     case FORM_TRIANGLE :
-        triangle = RShape.createStar(posx, posy, map(position.z, 250, 3000, 500, 50)/2, map(position.z, 250, 3000, 500, 50), 3);
-        // Rotate le triangle pour qu'il s'affiche dans le bon sens
-        triangle.rotate((PI/2)*3, triangle.getCenter());
-        noFill();
-        stroke(255, 255, 0);
-        triangle.draw();
-    break;
-  }
-    
-// Affiche l'ID de chaque utilisateur
-//    fill(0, 255, 0);
-//    textSize(60);
-//    text(userId, posx, posy);
-//println(position.z);
+      triangle = RShape.createStar(posx, posy, map(position.z, 250, 3000, 500, 50)/2, map(position.z, 250, 3000, 500, 50), 3);
+// (PI/2)*3 is for a correct display of the triangle
+      triangle.rotate((PI/2)*3, triangle.getCenter());
+      noFill();
+      stroke(255, 255, 0);
+      triangle.draw();
+      break;
+    }
 
-}
-  
-// GEOMERATIVE INTERSECTION, actif uniquement si les formes sont elles-même actives
-  if(rectangle != null && circle != null){
-     if(circle.intersects(rectangle)) {
-    RShape diff = circle.intersection(rectangle);
-//    fill( random(255), random(255), random(255));
+// OPTIONAL : Display the userId of each user
+    /*  fill(0, 255, 0);
+        textSize(60);
+        text(userId, posx, posy);
+        println(position.z); */
+  }
+
+// GEOMERATIVE INTERSECTION (active only if shapes are displayed)
+  if (rectangle != null && circle != null) {
+    if (circle.intersects(rectangle)) {
+      RShape diff = circle.intersection(rectangle);
+      // fill( random(255), random(255), random(255));
 
 
 // Test de trame au croisement de formes (ne marche pas)
-RPoint[] gi = circle.getIntersections(rectangle);
+     /* RPoint[] gi = circle.getIntersections(rectangle);
 
-for(int i = 0; i <= diff.width; i += 10) {
-   stroke(255);
-   line(gi[i].x, gi[i].y, gi[i].x, diff.height); 
-   if(diff !=null)  diff.draw();
-     }
-    mb.sendNoteOn(channel, pitch, velocity);
+      for (int i = 0; i <= diff.width; i += 10) {
+        stroke(255);
+        line(gi[i].x, gi[i].y, gi[i].x, diff.height); 
+        if (diff !=null)  diff.draw();
+      } */
+      mb.sendNoteOn(channel, pitch, velocity);
+    }  
+  } 
+
+  if (rectangle != null && triangle != null) {
+    if (rectangle.intersects(triangle)) {
+      RShape diff = rectangle.intersection(triangle);
+      fill( random(255), random(255), random(255));
+      if (diff !=null)  diff.draw();
+      mb.sendNoteOn(channel, pitch, velocity);
+    }
+  } 
+
+  if (circle != null && triangle != null) {
+    if (circle.intersects(triangle)) {
+      RShape diff = circle.intersection(triangle);
+      fill( random(255), random(255), random(255));
+      if (diff !=null)  diff.draw();
+      mb.sendNoteOn(channel, pitch, velocity);
+    }
+  } 
+
+// Reload the "first apperance animation" of a shape
+  if (rectangle == null && xr != 0) {
+    xr = 0;
+    yr = 0;
   }
-} 
-  
-   if(rectangle != null && triangle != null){
-     if(rectangle.intersects(triangle)) {
-    RShape diff = rectangle.intersection(triangle);
-    fill( random(255), random(255), random(255));
-    if(diff !=null)  diff.draw();
-    mb.sendNoteOn(channel, pitch, velocity);
-    }
-  } 
-  
-  if(circle != null && triangle != null){
-     if(circle.intersects(triangle)) {
-    RShape diff = circle.intersection(triangle);
-    fill( random(255), random(255), random(255));
-    if(diff !=null)  diff.draw();
-    mb.sendNoteOn(channel, pitch, velocity);
-    }
-  } 
-  
-// Permet d'animer la forme à chaque nouvelle apparition
-    if(rectangle == null && xr != 0) {
-        xr = 0;
-        yr = 0;
-      }
-  
-  
-// Si il n'y a plus d'utilisateur actif et qu'une forme est encore attribué à rect/ellipse..etc, alors lui attribuer une forme undefined
-// Permet de remettre le tableau à undefined en cas de nouvelle entrée/sortie d'utilisateurs
-  for (int i=0; i < useractive.length; i++) {
 
+
+// If there is no more active users, but a shape is still assign to a user, the shape became "undefined" and disappear
+// In case of new entry or exit of users, shapes in the array became "undefined"
+  for (int i=0; i < useractive.length; i++) {
     if (!useractive[i] && userform[i] != FORM_UNDEFINED) {
       userform[i]= FORM_UNDEFINED;
       rectangle = null;
@@ -227,9 +211,6 @@ for(int i = 0; i <= diff.width; i += 10) {
       triangle = null;
     }
   }
-  
 }
-
-      
 
 
