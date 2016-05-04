@@ -27,10 +27,11 @@ import themidibus.*;
 
 SimpleOpenNI kinect;
 
-// Create Rshape objects
+// Create Rshape objects and textures
 RShape circle;
 RShape rectangle;
 RShape triangle;
+PImage tex;
 
 // Create a MidiBus object
 MidiBus mb;
@@ -45,25 +46,21 @@ boolean sketchFullScreen() {
 }
 
 // Width and Height variable of every shapes at "start"
-//float wr = 0;
-//float hr = 0;
-//float wt = 0;
-//float ht = 0;
-//float wc = 0;
-//float hc = 0;
 float wr, hr, wt, ht, wc, hc = 0;
 
 
 void setup() {
   size(displayWidth, displayHeight, P3D);
-
 // New libraries object : openNI/Geomerative/Midibus/Ani
   kinect = new SimpleOpenNI(this); 
   kinect.enableDepth(); 
   kinect.enableUser();
-
   Ani.init(this);
   RG.init(this);
+  
+// Instantiate the texture
+  tex = loadImage("degrad.png");
+  textureMode(NORMAL);
 
 // Instantiate the MidiBus
   mb = new MidiBus(this, -1, "Bus 1");
@@ -125,8 +122,8 @@ void draw() {
 // Translation of kinect proportion to fullscreen proportions
     float posx = map(position.x, 0, 640, width, 0);
     float posy = map(position.y, 0, 480, 0, height);
-    float widthShape = map(position.z, 250, 3000, 500, 50);
-    float heightShape = map(position.z, 250, 3000, 500, 50)*1.5;
+    float widthShape = map(position.z, 250, 3000, 1000, 50);
+    float heightShape = map(position.z, 250, 3000, 700, 50)*1.5;
 
 // Creation of geometric shapes     
     switch (userform[userId]) {
@@ -136,8 +133,8 @@ void draw() {
       stroke(0, 0, 255);
       rectangle.draw();
 // The shape appears with a "lerp" animation
-      wr += (widthShape - wr)* 0.09;
-      hr += (heightShape - hr) * 0.3;
+      wr += (widthShape - wr)* 0.08;
+      hr += (heightShape - hr) * 0.2;
 // MIDI Channel is activate when the shape appears
       /*  mb.sendNoteOn(channel, pitch, velocity); */
       break;
@@ -148,7 +145,7 @@ void draw() {
       circle.draw();
 // The shape appears with a "lerp" animation
       wc += (widthShape - wc)* 0.09;
-      hc += (heightShape - hc) * 0.3;
+      hc += (heightShape - hc) * 0.15;
       break;
     case FORM_TRIANGLE :
       triangle = RShape.createStar(posx, posy, wt, ht, 3);
@@ -161,30 +158,38 @@ void draw() {
       wt += (widthShape/2 - wt)* 0.09;
       ht += (widthShape - ht) * 0.3;
       break;
-    }
+  }
 
 // OPTIONAL : Display the userId (number) of each user
     /*  fill(0, 255, 0);
         textSize(60);
         text(userId, posx, posy);
         println(position.z); */
-  }
+}
 
 // Geomerative intersection (active only if shapes are displayed)
+  
+// Rectangle & circle
   if (rectangle != null && circle != null) {
     if (circle.intersects(rectangle)) {
       RShape diff = circle.intersection(rectangle);
-      // fill( random(255), random(255), random(255));
 
-
-// Test de trame au croisement de formes (ne marche pas)
-     /* RPoint[] gi = circle.getIntersections(rectangle);
-
-      for (int i = 0; i <= diff.width; i += 10) {
-        stroke(255);
-        line(gi[i].x, gi[i].y, gi[i].x, diff.height); 
-        if (diff !=null)  diff.draw();
-      } */
+// RPoint array to get the points area of "diff"
+    RG.setPolygonizer(RG.UNIFORMLENGTH);
+    RG.setPolygonizerLength(10);
+    RPoint[] points = diff.getPoints();
+    
+// Create a shape equals to "diff shape"
+ beginShape();
+    texture(tex);
+    for (int i=0; i<points.length; i++) {
+      float x = points[i].x;
+      float y = points[i].y;
+      float u = norm(points[i].x, circle.getX(), circle.getWidth() + circle.getX());
+      float v = norm(points[i].y, circle.getY(), circle.getHeight() + circle.getY());
+      vertex(x, y, u, v);
+    }
+    endShape();
       mb.sendNoteOn(channel, pitch, velocity);
     }  
   } 
@@ -235,4 +240,12 @@ void draw() {
   }
 }
 
+// Test de trame au croisement de formes (ne marche pas)
+     /* RPoint[] gi = circle.getIntersections(rectangle);
+
+      for (int i = 0; i <= diff.width; i += 10) {
+        stroke(255);
+        line(gi[i].x, gi[i].y, gi[i].x, diff.height); 
+        if (diff !=null)  diff.draw();
+      } */
 
